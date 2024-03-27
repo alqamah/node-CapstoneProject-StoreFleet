@@ -3,7 +3,13 @@ import mongoose from "mongoose";
 import { ObjectId } from "mongoose";
 
 export const createNewUserRepo = async (user) => {
-  return await new UserModel(user).save();
+  try{
+    return await new UserModel(user).save();
+  }catch(e){
+    if(e.code == 11000)
+      throw new Error("email already registered")
+    throw e;
+  }
 };
 
 export const findUserRepo = async (factor, withPassword = false) => {

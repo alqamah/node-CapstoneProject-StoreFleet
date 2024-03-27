@@ -7,7 +7,8 @@ export const auth = async (req, res, next) => {
   if (!token) {
     return next(new ErrorHandler(401, "login to access this route!"));
   }
-  const decodedData = await jwt.verify(token, process.env.JWT_Secret);
+//  const decodedData = await jwt.verify(token, process.env.JWT_Secret);
+  const decodedData = await jwt.verify(token, "storefleetbyvivek");
   req.user = await UserModel.findById(decodedData.id);
   next();
 };

@@ -49,8 +49,10 @@ userSchema.pre("save", async function (next) {
 
 // JWT Token
 userSchema.methods.getJWTToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_Secret, {
-    expiresIn: process.env.JWT_Expire,
+//  return jwt.sign({ id: this._id }, process.env.JWT_Secret, {
+  return jwt.sign({ id: this._id }, "storefleetbyvivek", {
+//    expiresIn: process.env.JWT_Expire,
+    expiresIn: "1d",
   });
 };
 // user password compare

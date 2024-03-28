@@ -98,7 +98,7 @@ export const sendWelcomeEmail = async (user) => {
         console.log("Email sent to "+user.email+" : " + info.response);
       }
     });
-  }catch(e){
+}catch(e){
     console.log(e);
 }
 

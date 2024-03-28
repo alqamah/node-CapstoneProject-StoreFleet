@@ -5,6 +5,7 @@ import { sendPasswordResetEmail } from "../../../utils/emails/passwordReset.js";
 import { sendWelcomeEmail } from "../../../utils/emails/welcomeMail.js";
 import { ErrorHandler } from "../../../utils/errorHandler.js";
 import { sendToken } from "../../../utils/sendToken.js";
+import UserModel from "../models/user.schema.js";
 import {
   createNewUserRepo,
   deleteUserRepo,
@@ -64,10 +65,66 @@ export const logoutUser = async (req, res, next) => {
 
 export const forgetPassword = async (req, res, next) => {
   // Implement feature for forget password
+  try{
+    const user = await findUserRepo({email: req.body.email});
+    if(!user){
+      return next(new ErrorHandler(404, "User not found!"));
+    }
+    const resetToken = await user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+    console.log("reset-token",resetToken);
+    const resetUrl = `http://localhost:3000/api/storefleet/user/password/reset/${resetToken}`;
+    await sendPasswordResetEmail(user, resetUrl);
+    res.status(200).json({success: true, msg: "password reset link sent to your email"});
+
+  }catch(err){
+    console.log(err);
+    return next(new ErrorHandler(400, err));
+  }
 };
 
 export const resetUserPassword = async (req, res, next) => {
-  // Implement feature for reset password
+  try {
+    const {token} = req.params;
+    //console.log(token);
+    // Hash the token received in the request
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex")
+      .toString();
+
+    // Find user with the resetPasswordToken
+    const user = await findUserForPasswordResetRepo(
+      { resetPasswordToken },
+      true
+    );
+
+    if (!user) {
+      return next(new ErrorHandler(400, "Invalid token"));
+    }
+
+    // Check if token has expired
+    if (user.resetPasswordExpire < Date.now()) {
+      return next(new ErrorHandler(400, "Token has expired"));
+    }
+
+    if (req.body.password !== req.body.confirmPassword) {
+      return next(new ErrorHandler(400, "Passwords don't match"));
+    }
+
+    // Update user password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.status(200).json({ success: true, msg: "Password updated" });
+  } catch (err) {
+    console.log(err);
+    return next(new ErrorHandler(500, err.message));
+  }
 };
 
 export const getUserDetails = async (req, res, next) => {

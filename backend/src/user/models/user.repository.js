@@ -19,7 +19,7 @@ export const findUserRepo = async (factor, withPassword = false) => {
 
 export const findUserForPasswordResetRepo = async (hashtoken) => {
   return await UserModel.findOne({
-    resetPasswordToken: hashtoken,
+    resetPasswordToken: hashtoken.resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() },
   });
 };

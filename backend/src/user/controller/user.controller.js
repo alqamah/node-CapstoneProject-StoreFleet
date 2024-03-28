@@ -16,6 +16,7 @@ import {
   updateUserRoleAndProfileRepo,
 } from "../models/user.repository.js";
 import crypto from "crypto";
+import mongoose from "mongoose";
 
 export const createNewUser = async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -219,4 +220,18 @@ export const deleteUser = async (req, res, next) => {
 
 export const updateUserProfileAndRole = async (req, res, next) => {
   // Write your code here for updating the roles of other users by admin
+  try {
+    const { name, email, role } = req.body;
+    const { id } = req.params;
+    const _id = new mongoose.Types.ObjectId(id);
+    const updatedUserDetails = await updateUserRoleAndProfileRepo(_id, {
+      name,
+      email,
+      role
+    });
+    res.status(200).json({ success: true, msg: "role updated successfully", updatedUserDetails });
+  } catch (error) {
+    console.log(error);
+    return next(new ErrorHandler(400, error));
+  }
 };

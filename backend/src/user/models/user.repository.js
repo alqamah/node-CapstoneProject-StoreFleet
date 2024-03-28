@@ -42,4 +42,14 @@ export const deleteUserRepo = async (_id) => {
 
 export const updateUserRoleAndProfileRepo = async (_id, data) => {
   // Write your code here for updating the roles of other users by admin
+  try{
+  return await UserModel.findOneAndUpdate(_id, {role:data.role}, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+  }catch(err){
+    throw new Error(err);
+  }
+
 };

@@ -51,5 +51,4 @@ export const updateUserRoleAndProfileRepo = async (_id, data) => {
   }catch(err){
     throw new Error(err);
   }
-
 };

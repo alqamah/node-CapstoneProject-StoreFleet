@@ -13,6 +13,7 @@ import {
 } from "../model/product.repository.js";
 import ProductModel from "../model/product.schema.js";
 
+
 export const addNewProduct = async (req, res, next) => {
   try {
     const product = await addNewProductRepo({
@@ -30,7 +31,50 @@ export const addNewProduct = async (req, res, next) => {
 };
 
 export const getAllProducts = async (req, res, next) => {
-  // Implement the functionality for search, filter and pagination this function.
+  try {
+    const { page, keyword, price, category, rating } = req.query;
+
+    // Pagination Logic
+    const pageNumber = parseInt(page) || 1;
+    const limit = 10;
+    const skip = (pageNumber - 1) * limit;
+
+    // Build the query object
+    const query = {};
+
+    // Search by keyword
+    if (keyword) {
+      query.name = { $regex: keyword, $options: 'i' };
+    }
+
+    // Filter by category
+    if (category) {
+      query.category = category;
+    }
+
+    // Filter by price
+    if (price) {
+      query.price = { $gte: price.gte, $lte: price.lte };
+    }
+
+    //Filter by rating
+    if (rating) {
+      query.rating = { $gte: rating.gte, $lte: rating.lte };
+    }
+
+    const products = await getAllProductsRepo(query, skip, limit);
+    const totalProducts = await getTotalCountsOfProduct(query);
+
+    res.status(200).json({
+      success: true,
+      products,
+      totalProducts,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalProducts / limit),
+    });
+  } catch (error) {
+    return next(new ErrorHandler(400, error));
+  }
 };
 
 export const updateProduct = async (req, res, next) => {

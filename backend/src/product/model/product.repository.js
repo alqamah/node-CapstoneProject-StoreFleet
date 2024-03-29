@@ -4,8 +4,8 @@ export const addNewProductRepo = async (product) => {
   return await new ProductModel(product).save();
 };
 
-export const getAllProductsRepo = async () => {
-  return await ProductModel.find({});
+export const getAllProductsRepo = async (query, skip, limit) => {
+  return await ProductModel.find(query).skip(skip).limit(limit);
 };
 
 export const updateProductRepo = async (_id, updatedData) => {
@@ -26,7 +26,7 @@ export const getProductDetailsRepo = async (_id) => {
 
 export const getTotalCountsOfProduct = async () => {
   return await ProductModel.countDocuments();
-};
+}; //?add query to count only available products
 
 export const findProductRepo = async (productId) => {
   return await ProductModel.findById(productId);

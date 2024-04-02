@@ -44,7 +44,7 @@ export const getAllProducts = async (req, res, next) => {
 
     // Search by keyword
     if (keyword) {
-      query.name = { $regex: keyword, $options: 'i' };
+      query.name = { $regex: keyword, $options: 'i' };// ignoring case
     }
 
     // Filter by category
@@ -70,7 +70,7 @@ export const getAllProducts = async (req, res, next) => {
       products,
       totalProducts,
       currentPage: pageNumber,
-      totalPages: Math.ceil(totalProducts / limit),
+      totalPages: Math.ceil(totalProducts / limit), //used for pagination logic (2 of 4 pg)
     });
   } catch (error) {
     return next(new ErrorHandler(400, error));
@@ -173,6 +173,9 @@ export const getAllReviewsOfAProduct = async (req, res, next) => {
 export const deleteReview = async (req, res, next) => {
   // Insert the essential code into this controller wherever necessary to resolve issues related to removing reviews and updating product ratings.
   try {
+    const userId = req.user._id;
+    //console.log("userId:",userId);
+    
     const { productId, reviewId } = req.query;
     if (!productId || !reviewId) {
       return next(
@@ -182,6 +185,7 @@ export const deleteReview = async (req, res, next) => {
         )
       );
     }
+    
     const product = await findProductRepo(productId);
     if (!product) {
       return next(new ErrorHandler(400, "Product not found!"));
@@ -196,7 +200,19 @@ export const deleteReview = async (req, res, next) => {
     }
 
     const reviewToBeDeleted = reviews[isReviewExistIndex];
+
+    //check if the user is the owner of the review
+    if (reviewToBeDeleted.user.toString()!== userId.toString()) {
+      return next(new ErrorHandler(400, "access denied"));
+    }
+    //update the average rating
     reviews.splice(isReviewExistIndex, 1);
+    let avgRating = 0;
+    product.reviews.forEach((rev) => {
+      avgRating += rev.rating;
+    });
+    const updatedRatingOfProduct = avgRating / product.reviews.length;
+    product.rating = updatedRatingOfProduct;
 
     await product.save({ validateBeforeSave: false });
     res.status(200).json({
